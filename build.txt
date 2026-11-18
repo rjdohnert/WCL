@@ -1,0 +1,51 @@
+WCL Windows build instructions
+==============================
+
+Prerequisite
+------------
+Install LLVM for Windows with clang.exe. The scripts first check
+"C:\Program Files\LLVM\bin\clang.exe", then PATH. Set WCL_CLANG_PATH to use a
+different clang.exe.
+
+Build from the project root (E:\Github\WCL)
+-------------------------------------------
+Command Prompt:
+    build.bat
+
+PowerShell:
+    .\build.ps1
+
+Or specify the compiler explicitly:
+    .\build.ps1 -ClangPath "D:\LLVM\bin\clang.exe"
+
+The executable is written to build\wcl.exe. The PowerShell script returns the
+compiler's failure exit code; the batch script does the same for cmd.exe.
+
+Source compilation order
+------------------------
+The source is split into independent C translation units. Build scripts
+compile and link these files in dependency order; `.h` files declare shared
+types and module APIs. The old monolithic `wcl.c` and unity-build fragments
+have been removed; build from the project root using one of the scripts above.
+
+  1. src\core\preamble.c                    (context lifecycle)
+  2. src\core\symbols_lexicals.c            (symbols and lexical functions)
+  3. src\core\context_files.c               (logical names and file context)
+  4. src\commands\directory.c               (DIRECTORY)
+  5. src\commands\show.c                    (SHOW catalog and reports)
+  6. src\commands\file_operations.c         (file commands)
+  7. src\commands\process.c                 (logical/process configuration)
+  8. src\platform\windows\scheduler.c       (RUN and Task Scheduler)
+  9. src\commands\file_channels.c           (OPEN/READ/WRITE/CLOSE/EXIT)
+ 10. src\core\registry.c                    (command registry and qualifier validation)
+ 11. src\platform\windows\volume_operations.c (Windows volume mappings)
+ 12. src\commands\help.c                    (HELP)
+ 13. src\core\parser_conditions.c            (command parser and conditions)
+ 14. src\scripting\procedure.c              (procedure interpreter)
+ 15. src\core\execution.c                   (command dispatch and process launch)
+ 16. src\app\main.c                         (program entry point)
+
+The order is maintained in `build.ps1` and `build.bat`. Shared definitions are
+in `src\include\wcl_internal.h`; command registration APIs are in the relevant
+module headers. The compatibility boundary and Windows mappings are documented
+in `docs\dcl-compatibility.md`.
